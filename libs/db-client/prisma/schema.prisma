@@ -18,6 +18,18 @@ model Tenant {
     createdAt DateTime  @default(now())
 }
 
+enum TenantType {
+    K12 // Ensino Geral/Médio
+    UNIVERSITY // Ensino Superior
+    KINDERGARTEN //Creche
+}
+
+enum TenantStatus {
+    ACTIVE
+    SUPENDED // Falta de pagamento
+    ARCHIVED
+}
+
 model User {
     id          String @id @default(uuid())
     email       String @unique
@@ -28,10 +40,20 @@ model User {
 }
 
 model Student {
-    id       String @id  @default(uuid())
+    id       String  @id @default(uuid())
     name     String
     email    String?
     status   String  @default("ACTIVE")
     tenantId String
-    tenant   Tenant @relation(fields: [tenantId], references: [id])
+    tenant   Tenant  @relation(fields: [tenantId], references: [id])
+}
+
+enum Role {
+  SUPER_ADMIN  // Você (Gere a plataforma)
+  ADMIN        // Diretor da Escola
+  FINANCIAL    // Tesouraria
+  SECRETARY    // Secretaria Académica
+  TEACHER      // Professor
+  STUDENT      // Acesso ao Portal
+  GUARDIAN     // Encarregado
 }
