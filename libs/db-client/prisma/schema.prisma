@@ -1,59 +1,88 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Tenant {
-    id        String    @id @default(uuid())
-    slug      String    @unique
-    name      String
-    type      String    @default("K12") // College
-    config    Json      @default("{}")
-    users     User[]
-    students  Student[]
-    createdAt DateTime  @default(now())
+  id            String         @id @default(uuid())
+  slug          String         @unique
+  name          String
+  type          String         @default("K12") // College
+  config        Json           @default("{}")
+  users         User[]
+  students      Student[]
+  status        String         @default("ACTIVE")
+  createdAt     DateTime       @default(now())
+  academicYears AcademicYear[]
+  classes       Class[]
 }
 
 enum TenantType {
-    K12 // Ensino Geral/Médio
-    UNIVERSITY // Ensino Superior
-    KINDERGARTEN //Creche
+  K12 // Ensino Geral/Médio
+  UNIVERSITY // Ensino Superior
+  KINDERGARTEN //Creche
 }
 
 enum TenantStatus {
-    ACTIVE
-    SUPENDED // Falta de pagamento
-    ARCHIVED
+  ACTIVE
+  SUPENDED // Falta de pagamento
+  ARCHIVED
 }
 
 model User {
-    id          String @id @default(uuid())
-    email       String @unique
-    passwordHas String
-    role        String @default("OPERATOR")
-    tenantId    String
-    tenant      Tenant @relation(fields: [tenantId], references: [id])
+  id           String @id @default(uuid())
+  name         String
+  email        String @unique
+  passwordHash String
+  role         String @default("OPERATOR")
+  tenantId     String
+  tenant       Tenant @relation(fields: [tenantId], references: [id])
 }
 
 model Student {
-    id       String  @id @default(uuid())
-    name     String
-    email    String?
-    status   String  @default("ACTIVE")
-    tenantId String
-    tenant   Tenant  @relation(fields: [tenantId], references: [id])
+  id         String  @id @default(uuid())
+  name       String
+  email      String?
+  nationalId String? @unique
+  status     String  @default("ACTIVE")
+  tenantId   String
+  tenant     Tenant  @relation(fields: [tenantId], references: [id])
+  class      Class?  @relation(fields: [classId], references: [id])
+  classId    String?
+}
+
+model AcademicYear {
+  id        String   @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  classes   Class[]
+}
+
+model Class {
+  id             String       @id @default(uuid())
+  name           String
+  tenantId       String
+  tenant         Tenant       @relation(fields: [tenantId], references: [id])
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  students       Student[]
 }
 
 enum Role {
-  SUPER_ADMIN  // Você (Gere a plataforma)
-  ADMIN        // Diretor da Escola
-  FINANCIAL    // Tesouraria
-  SECRETARY    // Secretaria Académica
-  TEACHER      // Professor
-  STUDENT      // Acesso ao Portal
-  GUARDIAN     // Encarregado
+  SUPER_ADMIN // Você (Gere a plataforma)
+  ADMIN // Diretor da Escola
+  FINANCIAL // Tesouraria
+  SECRETARY // Secretaria Académica
+  TEACHER // Professor
+  STUDENT // Acesso ao Portal
+  GUARDIAN // Encarregado
 }

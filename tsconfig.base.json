@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@ulongo/db-client": ["libs/db-client/src/index.ts"]
+      "@ulongo/db-client": ["libs/db-client/src/index.ts"],
+      "@ulongo/api-utils": ["libs/api-utils/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
