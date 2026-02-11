@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../../../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -45,15 +44,23 @@ model User {
 }
 
 model Student {
-  id         String  @id @default(uuid())
+  id         String            @id @default(uuid())
+  code       String
+  documents  StudentDocument[]
+  //invoices   Invoice[]
+  payments   Payment[]
   name       String
   email      String?
-  nationalId String? @unique
-  status     String  @default("ACTIVE")
+  nationalId String?           @unique
+  status     String            @default("ACTIVE")
   tenantId   String
-  tenant     Tenant  @relation(fields: [tenantId], references: [id])
-  class      Class?  @relation(fields: [classId], references: [id])
+  tenant     Tenant            @relation(fields: [tenantId], references: [id])
+  class      Class?            @relation(fields: [classId], references: [id])
   classId    String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @default(now())
+
+  @@unique([tenantId, code])
 }
 
 model AcademicYear {
@@ -75,6 +82,52 @@ model Class {
   academicYearId String
   academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
   students       Student[]
+}
+
+model TenantSequence {
+  id        String @id @default(uuid())
+  tenantId  String
+  year      Int
+  lastValue Int    @default(0)
+
+  @@unique([tenantId, year])
+}
+
+model StudentDocument {
+  id          String    @id @default(uuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id])
+  type        DocType // BI, Cerificado, Fotos, Vacinas
+  isSubmitted Boolean   @default(false)
+  fileUrl     String?
+  submittedAt DateTime?
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  amount         Decimal  @db.Decimal(12, 2)
+  method         String
+  transactionRef String?
+  description    String
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id])
+  tenantId       String
+  createdAt      DateTime @default(now())
+}
+
+enum StudentStatus {
+  ACTIVE
+  PENDING_DOCS
+  SUSPENDED
+  ALUMNI
+}
+
+enum DocType {
+  IDENTITY_CARD
+  CERTIFICATE
+  PHOTOS
+  VACCINE_CARD
+  TRANSFER_NOTE
 }
 
 enum Role {
